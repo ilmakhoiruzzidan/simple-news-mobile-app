@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, View} from "react-native";
+import {ActivityIndicator, FlatList, TextInput, View, StyleSheet} from "react-native";
 
 import {getArticles} from "../services/newsApi";
 import {ArticleCard} from "../components/ArticleCard";
@@ -11,6 +11,8 @@ export function ArticlesScreen({route, navigation}) {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredArticles, setFilteredArticles] = useState([]);
 
     const fetchArticles = async () => {
         if (loading || !hasMore) return;
@@ -22,6 +24,7 @@ export function ArticlesScreen({route, navigation}) {
                 return article.url && !article.url.includes('removed');
             });
             setArticles((prev) => [...prev, ...filteredData]);
+            setFilteredArticles((prev) => [...prev, ...filteredData]);
             if (data.length === 0) setHasMore(false);
         } catch (e) {
             console.error('Error fetching articles:'.e);
@@ -31,6 +34,14 @@ export function ArticlesScreen({route, navigation}) {
     useEffect(() => {
         fetchArticles();
     }, [page]);
+
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        const filtered = articles.filter((article) =>
+            article.title.toLowerCase().includes(query.toLowerCase())
+        );
+        setFilteredArticles(filtered);
+    };
 
     const loadMore = () => {
         if (!loading && hasMore) {
@@ -44,10 +55,16 @@ export function ArticlesScreen({route, navigation}) {
     };
 
     return (
-        <View>
+        <View style={styles.container}>
+            <TextInput
+                style={styles.searchInput}
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChangeText={handleSearch}
+            />
             <FlatList
                 showsVerticalScrollIndicator={false}
-                data={articles}
+                data={filteredArticles}
                 keyExtractor={(item) => item.url}
                 renderItem={({item, index}) => (
                     <ArticleCard
@@ -61,7 +78,18 @@ export function ArticlesScreen({route, navigation}) {
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={renderFooter}
             />
-
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    searchInput: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingLeft: 10,
+        marginBottom: 16,
+    },
+    container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+})

@@ -13,12 +13,6 @@ export const categories = [
     { id: 'technology', name: 'Technology' },
 ];
 
-export const getCategories = async (category) => {
-    const url = `${BASE_URL}/top-headlines/sources?category=${category}apiKey=${API_KEY}`;
-    const response = await axios.get(url);
-    return response.data.categories;
-};
-
 export const getSources = async (category) => {
     const url = `${BASE_URL}/top-headlines/sources?category=${category}&apiKey=${API_KEY}`;
     const response = await axios.get(url);
